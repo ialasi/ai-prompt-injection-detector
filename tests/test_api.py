@@ -118,3 +118,21 @@ def test_analyze_prompt_with_surrounding_whitespace():
     assert data["risk_score"] == 5
     assert data["severity"] == "low"
     assert data["action"] == "allow"
+
+def test_analyze_invalid_json_structure():
+    response = client.post(
+        "/analyze",
+        json=["unexpected", "list"]
+    )
+
+    assert response.status_code == 422
+
+def test_analyze_excessively_long_prompt():
+    response = client.post(
+        "/analyze",
+        json={
+            "prompt": "A" * 100_001
+        }
+    )
+
+    assert response.status_code == 422

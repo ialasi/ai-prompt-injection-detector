@@ -14,7 +14,12 @@ security_engine = PromptSecurityEngine()
 
 
 class AnalyzeRequest(BaseModel):
-    prompt: str = Field(..., min_length=1, description="Prompt to analyze")
+    prompt: str = Field(
+        ...,
+        min_length=1,
+        max_length=100_000,
+        description="Prompt to analyze",
+    )
 
     @field_validator("prompt")
     @classmethod
@@ -59,4 +64,3 @@ def analyze_prompt(request: AnalyzeRequest):
         action=result.action,
         indicators=result.indicators,
     )
-
