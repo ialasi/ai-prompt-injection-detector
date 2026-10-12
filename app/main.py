@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.security_engine import PromptSecurityEngine
 
@@ -15,6 +15,13 @@ security_engine = PromptSecurityEngine()
 
 class AnalyzeRequest(BaseModel):
     prompt: str = Field(..., min_length=1, description="Prompt to analyze")
+
+    @field_validator("prompt")
+    @classmethod
+    def validate_prompt(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("Prompt must contain non-whitespace characters")
+        return value
 
 
 class AnalyzeResponse(BaseModel):

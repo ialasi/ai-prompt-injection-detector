@@ -58,4 +58,63 @@ def test_analyze_safe_prompt():
     assert data["severity"] == "low"
     assert data["action"] == "allow"
     assert data["indicators"] == []
+    assert data["action"] == "allow"
 
+def test_analyze_empty_prompt():
+    response = client.post(
+        "/analyze",
+        json={
+            "prompt": ""
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_analyze_missing_prompt():
+    response = client.post(
+        "/analyze",
+        json={},
+    )
+
+    assert response.status_code == 422
+
+
+def test_analyze_invalid_prompt():
+    response = client.post(
+        "/analyze",
+        json={
+            "prompt": 12345
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_analyze_whitespace_prompt():
+    response = client.post(
+        "/analyze",
+        json={
+            "prompt": "  "
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_analyze_prompt_with_surrounding_whitespace():
+    response = client.post(
+        "/analyze",
+        json={
+            "prompt": "  Explain the basic principles of network security.  "
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["classification"] == "benign"
+    assert data["risk_score"] == 5
+    assert data["severity"] == "low"
+    assert data["action"] == "allow"
