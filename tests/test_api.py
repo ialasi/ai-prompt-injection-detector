@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from app.main import app
+from app.main import app, limiter
 
 
 client = TestClient(app)
@@ -136,3 +136,17 @@ def test_analyze_excessively_long_prompt():
     )
 
     assert response.status_code == 422
+
+
+def test_analyze_rate_limit():
+    limiter._storage.reset()
+
+    responses = [
+        client.post(
+            "/analyze",
+            json={"prompt": "Explain how firewalls work."},
+        )
+        for _ in range(11)
+    ]
+
+    assert sum(response.status_code == 429 for response in responses) == 1

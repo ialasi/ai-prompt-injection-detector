@@ -1,13 +1,23 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from pydantic import BaseModel, Field, field_validator
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from app.security_engine import PromptSecurityEngine
 
+limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI(
     title="AI Prompt Injection Detector",
     description="Security API for detecting and analyzing prompt injection attacks.",
     version="0.2.0",
+)
+
+app.state.limiter = limiter
+app.add_exception_handler(
+    RateLimitExceeded,
+    _rate_limit_exceeded_handler,
 )
 
 security_engine = PromptSecurityEngine()
@@ -54,9 +64,9 @@ def health_check():
 
 
 @app.post("/analyze", response_model=AnalyzeResponse)
-def analyze_prompt(request: AnalyzeRequest):
-    result = security_engine.analyze(request.prompt)
-
+@limiter.limit("10/minute")
+def analyze_prompt(request: Request, payload: AnalyzeRequest):
+    result = security_engine.analyze(payload.prompt)
     return AnalyzeResponse(
         classification=result.classification,
         risk_score=result.risk_score,
