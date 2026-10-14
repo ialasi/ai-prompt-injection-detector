@@ -229,3 +229,35 @@ UNTRUSTED
    │
    ▼
 Security Gateway
+   │
+   ▼
+Input Validation and Rate Limiting
+   │
+   ▼
+Prompt Detection Engine
+   │
+   ▼
+Security Decision
+```
+
+---
+
+## 7. Rate Limiting and Availability Mitigations
+
+### T-008 Mitigation — Denial of Service
+
+The `POST /analyze` endpoint is protected by a rate limit of 10 requests per minute per client IP address.
+
+The current control:
+
+- Rejects requests exceeding the configured limit with HTTP `429 Too Many Requests`.
+- Helps reduce excessive request volume from a single client IP address.
+- Is covered by an automated rate-limit enforcement test.
+
+### Residual Risks
+
+Rate limiting alone does not prevent all denial-of-service attacks, including distributed attacks using many source IP addresses.
+
+The current implementation uses in-memory rate-limit storage. Multiple workers or application instances may not share the same request counters, and counters may reset when the application restarts.
+
+Production deployments should use shared rate-limit storage, configure trusted proxy handling correctly, and consider additional controls such as request-size limits, monitoring, and infrastructure-level traffic protection.

@@ -130,6 +130,17 @@ returns:
 }
 ```
 
+## API Rate Limiting
+
+The `POST /analyze` endpoint is protected by rate limiting to reduce excessive requests and help mitigate resource-exhaustion attempts.
+
+- **Limit:** 10 requests per minute per client IP address.
+- **Exceeded limit:** The API returns HTTP `429 Too Many Requests`.
+- **Scope:** Rate limiting applies to `/analyze`; the root and health endpoints are not rate-limited by this configuration.
+- **Current storage:** Rate-limit data is stored in memory, making this configuration suitable for development and single-instance testing.
+
+For production deployments with multiple workers or application instances, configure a shared rate-limit storage backend. Ensure reverse-proxy settings are configured correctly before relying on client IP addresses for rate limiting.
+
 ## Testing
 
 Run the complete test suite with:
